@@ -1,5 +1,10 @@
 package courseproject2;
 import java.util.Scanner;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class InventorySystem {	
 	
@@ -33,8 +38,6 @@ public class InventorySystem {
 		while(choice != 7) {
 			
 			intro();
-			// this ensures that only a number is a valid input and not a string
-			
 			
 			while(!scan.hasNextInt()) {
 				String input = scan.next();
@@ -47,7 +50,7 @@ public class InventorySystem {
 			// switch menu to call the correct function corresponding to choice
 			switch(choice) {
 			case 1: 
-				searchItem();
+				searchItems();
 				break;
 			case 2:
 				removeItem();
@@ -76,8 +79,21 @@ public class InventorySystem {
 	}
 	
 	// searchItem function allows user to search database for item
-	public void searchItem() {
+	public void searchItems() {
 		System.out.println("Searching for item...");
+		try {
+		Connection connect = DriverManager.getConnection("jdbc:mysql://localhost:3306/courseproject", "root", "root");
+		PreparedStatement ps = connect.prepareStatement("Select * from products");
+		ResultSet rs = ps.executeQuery();
+		
+		while(rs.next()) {
+			System.out.println("ID: " + rs.getString("productID") + " - Name: " + rs.getString("productName") + " - Price: " + rs.getString("price") + " - Quantity Available: " +
+			rs.getString("quantityAvailable"));
+		}
+		
+		}catch(SQLException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	// removeItem function allows user to remove item from database

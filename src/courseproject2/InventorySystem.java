@@ -24,8 +24,8 @@ public class InventorySystem {
 		System.out.println("2) Search for items by name");
 		System.out.println("3) Add item to inventory system");
 		System.out.println("4) Remove item from inventory system");
-		System.out.println("5) Generate receipts when items purchased and inventory removed");
-		System.out.println("6) Generate report for expired goods");
+		System.out.println("5) Update quantity for items in inventory system");
+		System.out.println("6) Generate receipt for sold items");
 		System.out.println("7) Exit program");
 		System.out.println("--------------------------------------------");
 
@@ -82,10 +82,22 @@ public class InventorySystem {
 				removeItem(name);
 				break;
 			case 5:
-				generateReceipt();
+				quantity = 0;
+				searchItems();
+				System.out.println("\nPlease enter a name of product to update quantity available");
+				name = scan.next();
+				searchItemName(name);
+				System.out.println("Please enter new quantity");
+				quantity = scan.nextInt();
+				updateQuantity(name, quantity);
 				break;
 			case 6:
-				expiredGoods();
+				searchItems();
+				System.out.println("\nEnter name of item purchased");
+				name = scan.next();
+				System.out.println("Please enter quantity of " + name + "'s purchased");
+				quantity = scan.nextInt();
+				printReceipt(name, quantity);
 				break;
 			case 7:
 				System.out.println("Exiting program");
@@ -166,12 +178,41 @@ public class InventorySystem {
 	}
 	
 	// generate receipt allows us to print items removed from database
-	public void generateReceipt() {
-		System.out.println("Generating receipt...");
+	public void updateQuantity(String name, int quantityAvailable) {
+		System.out.println("updating quantity...");
+		try {
+			Connection connect = DriverManager.getConnection("jdbc:mysql://localhost:3306/products", "root", "root");
+			PreparedStatement ps = connect.prepareStatement("UPDATE products SET quantityAvailable = (?) where productName =(?)");
+			ps.setInt(1, quantityAvailable);
+			ps.setString(2, name);
+			ps.executeUpdate();
+			
+			searchItemName(name);
+			}catch(SQLException e) {
+				e.printStackTrace();
+			}
 	}
 	
 	// expiredGoods function to print food and expiration dates
-	public void expiredGoods() {
-		System.out.println("Expired goods report...");
+	public void printReceipt(String name, int quantity) {
+		System.out.println("Printing receipt...");
+		try {
+			Connection connect = DriverManager.getConnection("jdbc:mysql://localhost:3306/products", "root", "root");
+			PreparedStatement ps = connect.prepareStatement("Select price from products WHERE productName = (?)");
+			ps.setString(1, name);
+			ResultSet rs = ps.executeQuery();
+			
+			if(rs.next()) {
+				double productPrice = rs.getDouble("price");
+			System.out.println("------------------Receipt-------------------");
+			System.out.println("Product Name: " + name);
+			System.out.println("Quantity Sold: " + quantity);
+			System.out.println("Total Cost: $" + productPrice*quantity);
+			System.out.println("--------------------------------------------");
+			}
+			
+			}catch(SQLException e) {
+				e.printStackTrace();
+			}
 	}
 }
